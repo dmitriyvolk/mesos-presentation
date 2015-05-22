@@ -1,0 +1,15 @@
+spring:
+    jpa:
+        hibernate:
+            ddl-auto: create-drop
+maxDelta: 0.0001
+server:
+    port: 31080
+---
+
+spring:
+    profiles: prod
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: http://registry.dmitriyvolk.net:8761/eureka/

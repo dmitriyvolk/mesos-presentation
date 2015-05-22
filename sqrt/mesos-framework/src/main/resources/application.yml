@@ -1,0 +1,11 @@
+eureka:
+    client:
+        registerWithEureka: false
+mesosMaster: zk://registry.dmitriyvolk.net:2181/mesos
+---
+spring:
+    profiles: prod
+eureka:
+    client:
+        serviceUrl:
+            defaultZone: http://registry.dmitriyvolk.net:8761/eureka/

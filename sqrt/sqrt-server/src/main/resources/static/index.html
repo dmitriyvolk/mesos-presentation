@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All your roots are square!</title>
+    <link rel="stylesheet" href="/webjars/bootstrap/3.3.1/css/bootstrap.min.css">
+    <script src="/webjars/sockjs-client/1.0.0/sockjs.min.js"></script>
+    <script src="/webjars/stomp-websocket/2.3.3/stomp.js"></script>
+    <script type="text/javascript">
+        var stompClient = null;
+
+
+        function connect() {
+            var socket = new SockJS('/status');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function(frame) {
+                console.log("Almost there");
+                //setConnected(true);
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/updates/addworkitem', function(workitem) {
+                    addWorkItem(JSON.parse(workitem.body));
+                });
+                stompClient.subscribe('/updates/removeworkitem', function(id) {
+                    removeWorkItem(JSON.parse(id.body).id);
+                });
+                stompClient.subscribe('/updates/addresult', function(result) {
+                    addResult(JSON.parse(result.body));
+                });
+            });
+        }
+
+        function disconnect() {
+            stompClient.disconnect();
+            console.log("Disconnected");
+        }
+
+        function addWorkItem(workitem) {
+            console.dir(workitem);
+            var ul = document.getElementById("workitems");
+            var li = document.createElement("li");
+            var wiDomId = "WorkItem" + workitem.id
+            li.setAttribute("id", wiDomId);
+            li.setAttribute("class", "list-group-item");
+            //li.appendChild(document.createTextNode(workitem));
+            li.innerHTML = '<span class="badge">' + workitem.iterationNumber + '</span> \\(\\sqrt{' + workitem.square + '} \\approx \\)' + workitem.currentApproximation ;
+            ul.appendChild(li);
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, wiDomId]);
+        }
+
+        function removeWorkItem(id) {
+            var elementId = "WorkItem" + id;
+            var ul = document.getElementById("workitems");
+            var li = document.getElementById(elementId);
+            ul.removeChild(li);
+        }
+
+        function addResult(result) {
+            console.dir(result);
+            var ul = document.getElementById("results");
+            var li = document.createElement("li");
+            var resDomId = "Result" + result.id;
+            li.setAttribute("id", resDomId);
+            li.setAttribute("class", "list-group-item");
+            li.innerHTML = '<span class="badge">' + result.iterations + '</span> \\(\\sqrt{' + result.square + '} = ' + result.root + '\\)';
+            ul.appendChild(li);
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, resDomId]);
+        }
+
+        function loaddata() {
+            loadworkitems(function() {
+                loadresults(function() {
+                    connect();
+                })
+            })
+        }
+
+        function loadworkitems(callback) {
+            load("/workitems", function(text) {
+                var obj = JSON.parse(text)
+                if (obj["_embedded"]) {
+                    var items = obj._embedded.workitems;
+                    for (i=0; i < items.length; i++) {
+                        var item = items[i];
+                        var href = item._links.self.href;
+                        var id = href.substring(href.lastIndexOf("/") + 1);
+                        item["id"] = id;
+                        addWorkItem(item);
+
+                    }
+                }
+                callback();
+            });
+        }
+
+        function loadresults(callback) {
+            load("/results", function(text) {
+                var obj = JSON.parse(text)
+                if (obj["_embedded"]) {
+                    var items = obj._embedded.results;
+                    for (i=0; i < items.length; i++) {
+                        var item = items[i];
+                        var href = item._links.self.href;
+                        var id = href.substring(href.lastIndexOf("/") + 1);
+                        item["id"] = id;
+                        addResult(item);
+                    }
+                }
+                callback();
+            });
+        }
+
+        function load(url, callback) {
+            req = new XMLHttpRequest();
+            req.open("GET", url, true);
+            req.send();
+            req.onreadystatechange = function () {
+                if (req.readyState==4 && req.status ==200) {
+                    var text = req.responseText;
+                    console.log(text);
+                    callback(text);
+                } else {
+                    console.log("SOmething wrong");
+                    console.dir(req);
+                }
+            }
+        }
+
+        window.onload = function() {
+            loaddata();
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="jumbotron">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div style="font-size: 2em;">\[newApproximation = \frac{oldApproximation + \frac{square}{oldApproximation}}{2}\]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-title">Work Items</div>
+                </div>
+                <div class="panel-body">
+                    <ul id="workitems" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <div class="panel-title">Results</div>
+                </div>
+                <div class="panel-body">
+                    <ul id="results" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="http://www.hostmath.com/Math/MathJax.js?config=OK"></script>
+</body>
+
+</html>
