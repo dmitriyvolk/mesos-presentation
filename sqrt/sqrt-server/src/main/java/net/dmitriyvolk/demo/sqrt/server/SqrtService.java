@@ -10,6 +10,7 @@ import net.dmitriyvolk.demo.sqrt.server.db.WorkItemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,8 +41,10 @@ public class SqrtService {
         WorkItem workItem;
         List<WorkItem> tempResult = workItemsRepository.findFirstByOrderByIterationNumberDesc();
         if (tempResult == null || tempResult.isEmpty()) {
+            simpMessagingTemplate.convertAndSend("/updates/hits", new GenericMessage<String>("bad"));
             return null;
         }
+        simpMessagingTemplate.convertAndSend("/updates/hits", new GenericMessage<String>("good"));
         workItem = tempResult.get(0);
         removeWorkItem(workItem);
         return workItem;

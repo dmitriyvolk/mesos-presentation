@@ -3,6 +3,8 @@
 <head>
     <title>All your roots are square!</title>
     <link rel="stylesheet" href="/webjars/bootstrap/3.3.1/css/bootstrap.min.css">
+    <script src="/webjars/jquery/2.1.4/jquery.min.js"></script>
+    <script src="/webjars/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script src="/webjars/sockjs-client/1.0.0/sockjs.min.js"></script>
     <script src="/webjars/stomp-websocket/2.3.3/stomp.js"></script>
     <script type="text/javascript">
@@ -25,6 +27,9 @@
                 stompClient.subscribe('/updates/addresult', function(result) {
                     addResult(JSON.parse(result.body));
                 });
+                stompClient.subscribe('/updates/hits', function(message) {
+                    bam(JSON.parse(message.body).payload);
+                });
             });
         }
 
@@ -34,7 +39,6 @@
         }
 
         function addWorkItem(workitem) {
-            console.dir(workitem);
             var ul = document.getElementById("workitems");
             var li = document.createElement("li");
             var wiDomId = "WorkItem" + workitem.id
@@ -54,7 +58,6 @@
         }
 
         function addResult(result) {
-            console.dir(result);
             var ul = document.getElementById("results");
             var li = document.createElement("li");
             var resDomId = "Result" + result.id;
@@ -63,6 +66,13 @@
             li.innerHTML = '<span class="badge">' + result.iterations + '</span> \\(\\sqrt{' + result.square + '} = ' + result.root + '\\)';
             ul.appendChild(li);
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, resDomId]);
+        }
+
+        function bam(callType) {
+            $('#' + callType + '-alert').addClass("in");
+            setTimeout(function() {
+                $('#' + callType + '-alert').removeClass("in");
+            }, 500);
         }
 
         function loaddata() {
@@ -160,6 +170,12 @@
                     <ul id="results" class="list-group"></ul>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <div id="good-alert" class="alert alert-success fade" >Good call</div>
+            <div id="bad-alert" class="alert alert-danger fade" >Bad call</div>
         </div>
     </div>
 </div>
