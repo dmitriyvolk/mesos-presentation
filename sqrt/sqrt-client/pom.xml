@@ -82,10 +82,6 @@
                 <configuration>
                     <dockerDirectory>src/main/docker</dockerDirectory>
                     <imageName>registry.dmitriyvolk.net:5000/sqrt/sqrt-client</imageName>
-                    <imageTags>
-                        <imageTag>${project.version}</imageTag>
-                        <imageTag>latest</imageTag>
-                    </imageTags>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>

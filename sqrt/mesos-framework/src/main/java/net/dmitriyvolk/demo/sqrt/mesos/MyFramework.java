@@ -11,20 +11,24 @@ import org.springframework.stereotype.Component;
 @Component
 public class MyFramework {
 
-    @Value("mesosMaster")
+    @Value("${mesosMaster}")
     String masterHostAndPort;
 
     @Autowired
     DiscoveryClient discoveryClient;
 
+    @Value("${imageName}")
+    String imageName;
+
+
     public void start() {
         Protos.FrameworkInfo.Builder frameworkBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName("SqrtFramework")
-//                .setHostname("10.113.232.242")
+                .setUser("")
                 .setFailoverTimeout(0);
 
 
-        MesosSchedulerDriver driver = new MesosSchedulerDriver(new MyScheduler(new RestHasMoreChecker(getSqrtServerUrl())), frameworkBuilder.build(), masterHostAndPort);
+        MesosSchedulerDriver driver = new MesosSchedulerDriver(new MyScheduler(new RestHasMoreChecker(getSqrtServerUrl()), imageName), frameworkBuilder.build(), masterHostAndPort);
 
         System.err.println("Exit status: " + driver.run());
 

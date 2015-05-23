@@ -1,7 +1,5 @@
-eureka:
-    client:
-        registerWithEureka: false
 mesosMaster: zk://registry.dmitriyvolk.net:2181/mesos
+imageName: registry.dmitriyvolk.net:5000/sqrt/sqrt-client
 ---
 spring:
     profiles: prod
