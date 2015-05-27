@@ -1,0 +1,23 @@
+{
+  "name": "xbo-mesos-presentation",
+  "version": "1.0.0",
+  "homepage": "https://github.com/dmitriyvolk/mesos-presentation",
+  "authors": [
+    "Dmitriy Volk"
+  ],
+  "description": "Presentation on Mesos ecosystem",
+  "main": "index.html",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "reveal.js": "~3.1.0",
+    "highlight-js": "~7.0.1",
+    "classlist": "~2014.12.13"
+  }
+}

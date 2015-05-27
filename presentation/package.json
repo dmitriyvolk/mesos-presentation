@@ -1,0 +1,48 @@
+{
+  "name": "xbo-mesos-presentation",
+  "version": "1.0.0",
+  "description": "Presentation on Mesos ecosystem",
+  "homepage": "https://github.com/dmitriyvolk/mesos-presentation",
+  "main": "index.html",
+  "scripts": {
+    "test": "grunt test",
+    "start": ""
+  },
+  "author": {
+    "name": "Dmitriy Volk",
+    "email": "dmitriy.volk@gmail.com",
+    "web": "http://twitter.com/xbo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:dmitriyvolk/mesos-presentation.git"
+  },
+  "engines": {
+    "node": "~0.10.0"
+  },
+  "dependencies": {
+    "express": "^5.0.0-alpha.1",
+    "mustache": "^0.7.3",
+    "socket.io": "^0.9.17",
+    "underscore": "^1.5.2"
+  },
+  "devDependencies": {
+    "grunt-contrib-qunit": "~0.5.2",
+    "grunt-contrib-jshint": "~0.6.4",
+    "grunt-contrib-cssmin": "~0.12.2",
+    "grunt-contrib-uglify": "~0.2.4",
+    "grunt-contrib-watch": "~0.5.3",
+    "grunt-sass": "~0.14.0",
+    "grunt-contrib-connect": "~0.8.0",
+    "grunt-autoprefixer": "~1.0.1",
+    "grunt-zip": "~0.7.0",
+    "grunt": "~0.4.0",
+    "node-sass": "~0.9.3"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/dmitriyvolk/mesos-presentation/blob/master/LICENSE.md"
+    }
+  ]
+}
