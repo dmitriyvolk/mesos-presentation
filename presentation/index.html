@@ -207,11 +207,39 @@
         </section>
 
         <section>
-          <h2>Deploy Server</h2>
-          <p>SQRT Server is a Spring Boot application <span class="logomarker" docker="yes"></span></p>
-          <p>Registers itself in a Eureka server</p>
-          <p>Exposes Web UI and REST APIs</p>
-          <p>Typical "long-running" task</p>
+          
+          <section>
+            <h2>Deploy Server</h2>
+            <p>SQRT Server is a Spring Boot application <span class="logomarker" docker="yes"></span></p>
+            <p>Registers itself in a Eureka server</p>
+            <p>Exposes Web UI and REST APIs</p>
+            <p>Typical "long-running" task</p>
+          </section>
+
+          <section>
+            <h3>Registering with Eureka</h3>
+            <p>pom.xml
+            <pre><code>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-eureka</artifactId>
+</dependency>
+            </code></pre></p>
+            <p>SqrtServerMain.java
+            <pre><code class="java">
+@EnableEurekaClient
+@SpringBootApplication
+public class SqrtServerMain {
+  ...
+}
+            </code></pre></p>            
+            <p>bootstrap.yml
+            <pre><code class="yaml">
+spring:
+    application:
+        name: sqrt-server
+            </code></pre></p>
+          </section>
         </section>
 
         <section>
@@ -227,7 +255,7 @@
 
         <section>
           <h3>REST call to Marathon</h3>
-          <pre><code data-trim style="font-size: 70%; line-height: 110%;">
+          <pre><code data-trim>
 {
   "id": "sqrt-server",
   "cmd": "",
@@ -254,16 +282,41 @@
         </section>
 
         <section>
-          <h2>Client-server interaction</h2>
-          <p>SQRT Client is also a Spring Boot application. <span class="logomarker" docker="yes"></span></p>
-          <p>Looks up SQRT Server location in Eureka, checks out a work item, and sends back a new approximation.</p>
-          <p>Needs some data to start with. Let's input data into the SQRT Server.<aside class="notes">Use Postman to call the app to generate random input</aside></p>
+          <section>
+            <h2>Client-server interaction</h2>
+            <p>SQRT Client is also a Spring Boot application. <span class="logomarker" docker="yes"></span></p>
+            <p>Looks up SQRT Server location in Eureka, checks out a work item, and sends back a new approximation.</p>
+            <p>Needs some data to start with. Let's input data into the SQRT Server.<aside class="notes">Use Postman to call the app to generate random input</aside></p>
+          </section>
+
+          <section>
+            <h3>Locating server in Eureka</h3>
+            <p>pom.xml
+            <pre><code data-trim>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-eureka</artifactId>
+</dependency>
+            </code></pre></p>
+            <p>SqrtClient.java
+            <pre><code class="java" data-trim>
+@Autowired
+DiscoveryClient discoveryClient;
+
+private String getSqrtServerUrl() {
+  ServiceInstance serviceInstance = 
+    discoveryClient.getInstances("sqrt-server").get(0);
+  return String.format("http://%s:%d", 
+    serviceInstance.getHost(), serviceInstance.getPort());
+}
+          </code></pre></p>
+          </section>
         </section>
 
         <section>
           <h2>Deploy SQRT Client</h2>
           <p>Also on Marathon:</p>
-          <pre><code data-trim style="font-size: 70%; line-height: 110%;">
+          <pre><code data-trim>
 {
   "id": "sqrt-client",
   "cmd": "",
@@ -290,7 +343,7 @@
           <p><em>Chronos</em> framework is <em>cron</em> for the cluster: distributed and fault-tolerant scheduler for Mesos.</p>
           <p>Exposes rudimentary UI and rich REST API</p>
           <p>Deployed on the demo cluster: <a href="http://registry.dmitriyvolk.net:4400" target="_chronos">Chronos UI</a> <span class="logomarker" docker="yes" mesos="couldhave"></span></p>
-          <pre><code data-trim style="font-size: 100%; line-height: 110%;">
+          <pre><code data-trim>
 {
   "name": "random-square-input",
   "schedule": "R50/2015-05-27T19:00:00Z/PT30S",
@@ -330,7 +383,7 @@
 
         <section>
           <h3>Custom Scheduler</h3>
-          <pre><code data-trim style="font-size: 70%; line-height: 110%;">
+          <pre><code data-trim>
 public void resourceOffers(SchedulerDriver schedulerDriver, List&lt;Protos.Offer> list) {
   for (Protos.Offer offer : list) {
     if (checker.hasMore()) { // makes REST call to app to check for available work items

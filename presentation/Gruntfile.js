@@ -95,8 +95,8 @@ module.exports = function(grunt) {
 				options: {
 					port: port,
 					base: '.',
-					livereload: true,
-					open: true
+					open: true,
+					livereload: true
 				}
 			}
 		},
