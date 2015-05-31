@@ -1,0 +1,17 @@
+.slides #setupimage img {
+	border: 0;
+	box-shadow: none;
+	background-color: #CCCCCC;
+}
+
+#setupimage {
+	background-color: #CCCCCC;
+	border-radius: 20px;
+	border-width: 2px;
+	border-color: cyan;
+}
+
+.reveal pre code {
+	font-size: 70%;
+	line-height: 110%;
+}

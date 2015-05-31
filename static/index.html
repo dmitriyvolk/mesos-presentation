@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Deployment with Mesos</title>
+
+    <meta name="description" content="Speaker notes on Mesos and friends">
+    <meta name="author" content="Dmitriy Volk">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+    <link rel="stylesheet" href="bower_components/reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="bower_components/reveal.js/css/theme/black.css" id="theme">
+    <link rel="stylesheet" href="css/presentation.css">
+
+    <!-- Code syntax highlighting -->
+    <link rel="stylesheet" href="bower_components/reveal.js/lib/css/zenburn.css">
+    <!-- <link rel="stylesheet" href="bower_components/highlight-js/src/styles/vs.css"> -->
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match( /print-pdf/gi ) ? 'bower_components/reveal.js/css/print/pdf.css' : 'bower_components/reveal.js/css/print/paper.css';
+      document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section>
+          <h1>Deployment with Mesos</h1>
+          <h3>Practical introduction to Mesos frameworks</h3>
+          <p>
+            <small>by Dmitriy Volk <a href="mailto:dmitriy.volk@gmail.com">dmitriy.volk@gmail.com</a>&nbsp;
+            <a href="http://twitter.com/xbo">@xbo</a></small>
+          </p>
+        </section>
+
+        <section>
+          <h2>Why PaaS didn't win</h2>
+          <p>Traditional PaaS tried to do too many things:</p>
+          <ul>
+            <li class="fragment">containerization (app &#8594; executable)</li>
+            <li class="fragment">provisioning of common infrastructure resources</li>
+            <li class="fragment">coordination</li>
+            <li class="fragment">provisioning</li>
+            <li class="fragment">scheduling and execution</li>
+            <li class="fragment">monitoring and management</li>
+          </ul>
+          <aside class="notes">
+            DevOps promised an easy way to get your code running. 
+            PaaS tried to deliver, but didn't quite make it. 
+            The choice of source code for the app affected most (or all) the components of PaaS.
+          </aside>
+        </section>
+
+        <section>
+          <h2>Separation of concerns</h2>
+          <ul>
+            <li>containerization &#8656; containers</li>
+            <li>common infrastructure resources &#8656; containers</li>
+            <li>coordination</li>
+            <li>provisioning</li>
+            <li class="fragment grow">scheduling and execution &#8656; Mesos</li>
+            <li>monitoring and management</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>Commoditization of computing</h2>
+          <p>
+            Virtualization, Cloud, Big Data, etc. abstracts away the execution platform for computing tasks. 
+          </p>
+          <p>
+            Instead of configured machines, all that matters is available resources: CPU, memory, disk, ports.
+          </p>
+        </section>
+
+        <section>
+          <h2>Apache Mesos</h2>
+          <ul>
+            <li><q cite="http://mesos.apache.org/">&ldquo;Distributed systems kernel&rdquo;</q></li>
+            <li>Execution fabric</li>
+            <li>Turns datacenter into a single pool of resources</li>
+          </ul>
+        </section>
+        
+        <section>
+          <h3>Mesos architecture</h3>
+          <img src="./images/mesos_architecture.png"/>
+          <small>https://www.digitalocean.com/community/tutorials/an-introduction-to-mesosphere</small>
+        </section>
+
+        <section style="text-align: left">
+          <h2>Mesos Doesn't do much</h2>
+          <h4>Slave</h4>
+          <ul>
+            <li>Offers resources to master</li>
+            <li>Launches tasks</li>
+            <li>Reports task status</li>
+          </ul>
+          <h4>Master</h4>
+          <ul>
+            <li>Forwards slaves' offers to frameworks</li>
+            <li>Forwards tasks to slaves</li>
+            <li>Routes messages</li>
+          </ul>
+        </section>
+
+        <section>
+          <h3>What Mesos doesn't do</h3>
+          <ul>
+            <li>Create task</li>
+            <li>Assign task</li>
+            <li>Enforce task</li>
+          </ul>
+        </section>
+
+        <section>
+          <section style="text-align: left;">
+            <h2>The real smarts</h2>
+            <p>To make Mesos execute even the simplest task, a <i>framework</i> is required</p>
+            <p>A framework consists of a Scheduler and and optional Executor</p>
+          </section>
+
+          <section>
+            <h3>Scheduler</h3>
+            <p><b>Scheduler</b> is called regularly with the question: <br/><i>"Here's list of slaves with their resources - do you want them to do anything?"</i></p>
+          </section>
+
+          <section>
+            <h3>Executor</h3>
+            <p>A specialized framework might want to package common way of launching its tasks into an <b>Executor</b></p>
+          </section>
+        </section>
+
+
+        <section>
+          <h2>Demo</h2>
+          <p>Deploying an application using various pieces of Mesos ecosystem.</p>
+          <p>Usage of Docker and Mesos is indicated for each step</p>
+          <table width="40%">
+            <tbody>
+              <tr>
+                <td style="background-color: green;">&nbsp;</td>
+                <td>Used</td>
+              </tr>
+              <tr>
+                <td style="background-color: red;">&nbsp;</td>
+                <td>Didn't use</td>
+              </tr>
+              <tr>
+                <td style="background-color: yellow;">&nbsp;</td>
+                <td>Could've used</td>
+              </tr>
+            </tbody>
+          </table>  
+          <div class="logomarker" docker="yes" mesos="no"></div>
+          <blockquote class="fragment" cite="http://en.wiktionary.org/wiki/if_all_you_have_is_a_hammer,_everything_looks_like_a_nail">
+            &ldquo;I suppose it is tempting, if the only tool you have is a hammer, to treat everything as if it were a nail.&rdquo; Abraham Maslow
+          </blockquote>
+        </section>
+
+        <section>
+          <h2>The application</h2>
+          <p>Finally, a truly distributed software system to calculate square roots!</p>
+          <p>Server holds work items (approximation iterations)</p>
+          <p>Client checks out a work item and calculates next approximation using Newton's formula:</p>
+          <p> \[newApproximation = \frac{oldApproximation + \frac{square}{oldApproximation}}{2}\]</p>
+        </section>
+
+        <section>
+          <section>
+            <h2>Preparation</h2>
+            <ul>Up and running so far:
+              <li class="fragment grow">Three EC2 instances</li>
+              <li class="fragment grow">Each instance runs Zookeeper <span class="logomarker" docker="yes"></span></li>
+              <li class="fragment grow">Each instance runs Mesos master <span class="logomarker" docker="couldhave"></span></li>
+              <li class="fragment grow">Each instance runs Mesos slave <span class="logomarker" docker="no"></span></li>
+              <li class="fragment grow">Docker repository <span class="logomarker" docker="yes" mesos="couldhave"></span></li>
+              <li class="fragment grow">Eureka server <span class="logomarker" docker="yes" mesos="couldhave"></span></li>
+            </ul>
+            <aside class="notes">One EC2 instance have Elastic IP assigned to it. DNS name registry.dmitriyvolk.net points to that IP.
+              Registry and Eureka are deployed to that instance to make it easy to find them</aside>
+          </section>
+
+          <section>
+            <h3>Demo cluster setup</h3>
+            <div id="setupimage"><img src="images/ec2-mesos-presentation-setup.png"></div>
+          </section>
+        </section>
+
+        <section>
+          
+          <section>
+            <h2>Deploy Server</h2>
+            <p>SQRT Server is a Spring Boot application <span class="logomarker" docker="yes"></span></p>
+            <p>Registers itself in a Eureka server</p>
+            <p>Exposes Web UI and REST APIs</p>
+            <p>Typical "long-running" task</p>
+          </section>
+
+          <section>
+            <h3>Registering with Eureka</h3>
+            <p>pom.xml
+            <pre><code>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-eureka</artifactId>
+</dependency>
+            </code></pre></p>
+            <p>SqrtServerMain.java
+            <pre><code class="java">
+@EnableEurekaClient
+@SpringBootApplication
+public class SqrtServerMain {
+  ...
+}
+            </code></pre></p>            
+            <p>bootstrap.yml
+            <pre><code class="yaml">
+spring:
+    application:
+        name: sqrt-server
+            </code></pre></p>
+          </section>
+        </section>
+
+        <section>
+          <h2>Marathon</h2>
+          <p><em>Marathon</em> framework manages long-running tasks on Mesos.</p>
+          <p>upstart / systemd for the cluster</p>
+          <p>Makes sure <em>n</em> instances of a task (application) are running in the cluster</p>
+          <p>Exposes rudimentary UI and rich REST API</p>
+          <p>Deployed on demo cluster <span class="logomarker" docker="yes" mesos="no"></span></p>
+          <aside class="notes">I've never tried launching tasks in plain Mesos, that's why Marathon is installed outside of Mesos. 
+          Also Marathon is the first thing people install to run things on Mesos</aside>
+        </section>
+
+        <section>
+          <h3>REST call to Marathon</h3>
+          <pre><code data-trim>
+{
+  "id": "sqrt-server",
+  "cmd": "",
+  "cpus": 1,
+  "instances": 1,
+  "mem" : 1024,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "registry.dmitriyvolk.net:5000/sqrt/sqrt-server",
+      "network": "HOST"
+    }
+  },
+  "constraints": [
+    [ "hostname", "CLUSTER", "registry.dmitriyvolk.net"]
+  ]
+}
+          </code></pre>
+          <p><small><a href="http://registry.dmitriyvolk.net:8761" target="_eureka">Eureka</a>&nbsp; 
+          <a href="http://registry.dmitriyvolk.net:31080" target="_sqrt_server">Sqrt Server UI</a>&nbsp;
+          <a href="http://registry.dmitriyvolk.net:8080" target="_marathon">Marathon</a></small></p>
+          <div class="logomarker" docker="yes" mesos="yes"></div>
+          <aside class="notes">Marathon is often called "private PaaS"</aside>
+        </section>
+
+        <section>
+          <section>
+            <h2>Client-server interaction</h2>
+            <p>SQRT Client is also a Spring Boot application. <span class="logomarker" docker="yes"></span></p>
+            <p>Looks up SQRT Server location in Eureka, checks out a work item, and sends back a new approximation.</p>
+            <p>Needs some data to start with. Let's input data into the SQRT Server.<aside class="notes">Use Postman to call the app to generate random input</aside></p>
+          </section>
+
+          <section>
+            <h3>Locating server in Eureka</h3>
+            <p>pom.xml
+            <pre><code data-trim>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-eureka</artifactId>
+</dependency>
+            </code></pre></p>
+            <p>SqrtClient.java
+            <pre><code class="java" data-trim>
+@Autowired
+DiscoveryClient discoveryClient;
+
+private String getSqrtServerUrl() {
+  ServiceInstance serviceInstance = 
+    discoveryClient.getInstances("sqrt-server").get(0);
+  return String.format("http://%s:%d", 
+    serviceInstance.getHost(), serviceInstance.getPort());
+}
+          </code></pre></p>
+          </section>
+        </section>
+
+        <section>
+          <h2>Deploy SQRT Client</h2>
+          <p>Also on Marathon:</p>
+          <pre><code data-trim>
+{
+  "id": "sqrt-client",
+  "cmd": "",
+  "cpus": 1,
+  "instances": 1,
+  "mem" : 1024,
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "registry.dmitriyvolk.net:5000/sqrt/sqrt-client",
+      "network": "HOST"
+    }
+  }
+}
+          </code></pre>
+          <p><small>After a square root has been successfully calculated, the client keeps getting launched. Not what we want, let's undeploy client.
+          <a href="http://registry.dmitriyvolk.net:8080" target="_marathon">Marathon</a></small></p>
+          <div class="logomarker" docker="yes" mesos="yes"></div>
+        </section>
+
+        <section style="text-align: left;">
+          <h2>Keep the inputs coming</h2>
+          <p>We emulate constant stream of inputs with scheduled calls to generate random input.</p>
+          <p><em>Chronos</em> framework is <em>cron</em> for the cluster: distributed and fault-tolerant scheduler for Mesos.</p>
+          <p>Exposes rudimentary UI and rich REST API</p>
+          <p>Deployed on the demo cluster: <a href="http://registry.dmitriyvolk.net:4400" target="_chronos">Chronos UI</a> <span class="logomarker" docker="yes" mesos="couldhave"></span></p>
+          <pre><code data-trim>
+{
+  "name": "random-square-input",
+  "schedule": "R50/2015-05-27T19:00:00Z/PT30S",
+  "command": "/usr/bin/curl -X POST 
+    'http://registry.dmitriyvolk.net:31080/newinput/random'",
+  "epsilon":  "PT15M",
+  "owner": "dmitriy.volk@gmail.com"
+}
+          </code></pre>
+          <div class="logomarker" docker="no" mesos="yes"></div>
+        </section>
+
+        <section style="text-align: left;">
+          <h2>Problem: Client scheduling</h2>
+          <p><em>Marathon</em> will keep restarting client, even after all the work is done.</p>
+          <p><em>Chronos</em> will launch client regardless of the work availability.</p>
+          <p>The alternative is obvious...</p>
+        </section>
+
+        <section>
+          <div class="fragment"><img src="./images/build_my_own.jpg" /></div>
+          <p class="fragment"><big>Yep.</big></p>
+        </section>
+
+        <section style="text-align: left;">
+          <h2>Writing your own framework</h2>
+          <p>SDKs available in C++, Python, Java</p>
+          <p>Communication with master through native library</p>
+          <p>Implement reactions to:
+            <ul>
+              <li>connect / disconnect</li>
+              <li>offers presented / rescinded</li>
+              <li>task status updated (launched, running, failed, finished)</li>
+            </ul>
+          </p>
+        </section>
+
+        <section>
+          <h3>Custom Scheduler</h3>
+          <pre><code data-trim>
+public void resourceOffers(SchedulerDriver schedulerDriver, List&lt;Protos.Offer> list) {
+  for (Protos.Offer offer : list) {
+    if (checker.hasMore()) { // makes REST call to app to check for available work items
+      ...
+      Protos.ContainerInfo.Builder containerBuilder = Protos.ContainerInfo.newBuilder()
+        .setType(Protos.ContainerInfo.Type.DOCKER)
+        .setDocker(Protos.ContainerInfo.DockerInfo.newBuilder()
+          .setImage(sqrtClientImageId).setNetwork(Protos.ContainerInfo.DockerInfo.Network.valueOf("HOST")).build());
+
+      Protos.TaskInfo task = Protos.TaskInfo.newBuilder()
+        .setTaskId(taskId).setName("sqrt-task-" + taskId.getValue())
+        .setSlaveId(offer.getSlaveId())
+        .addResources(Protos.Resource.newBuilder()
+          .setName("cpus").setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(1)))
+        .addResources(Protos.Resource.newBuilder()
+          .setName("mem").setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(1024)))
+        .setContainer(containerBuilder).setCommand(Protos.CommandInfo.newBuilder().setShell(false)).build();
+        ...
+      schedulerDriver.launchTasks(Collections.singleton(offer.getId()), Collections.singletonList(task), filters);
+    }
+  }
+}
+          </code></pre>
+          <aside class="notes">At the very minimum, this method is the only one we need to implement. Plus provide the ZooKeeper location, 
+          so the framework can establish communication with Mesos master(s). No special Executor is necessary to run Docker containers.</aside>
+        </section>
+
+        <section>
+          <h2>Deploy custom framework</h2>
+          <p>Custom framework is written as a Spring Boot application</p>
+          <p>Let's deploy it into the Mesos cluster</p>
+          <p>Watch clients not being launched when no work is available: 
+            <small><a href="http://registry.dmitriyvolk.net:31080" target="_sqrt_server">Sqrt Server UI</a></small></p>
+          <div class="logomarker" docker="yes" mesos="yes"></div>
+        </section>
+
+        <section>
+          <section>
+            <h2>Conclusion</h2>
+            <ul>Mesos:
+              <li>isolates the concern of scheduling and executing the payload;</li>
+              <li>is extensible;</li>
+              <li>furthers the commoditization of computing;</li>
+              <li>is a valid candidate for managing your datacenter.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2>Other popular frameworks</h2>
+            <ul>
+              <li>Hadoop</li>
+              <li>Spark</li>
+              <li>Elastic Search</li>
+              <li>Jenkins</li>
+              <li>Cassandra</li>
+              <li>...many others</li>
+            </ul>
+            <p><small><a href="http://mesos.apache.org/documentation/latest/mesos-frameworks/">http://mesos.apache.org/documentation/latest/mesos-frameworks/</a></small></p>
+          </section>
+
+          <section style="text-align: left;">
+            <h2>Containers everywhere</h2>
+            <div style="float: right;"><img style="background-color: green;" src="./images/docker.png" /></div>
+            <p>11 pieces of software used in this demo (12 including the presentation).</p>
+            <p>Only 3 were not run as docker containers:
+              <ul>
+                <li>Docker</li>
+                <li>Mesos master</li>
+                <li>Mesos slave</li>
+              </ul>
+            </p>
+            <p>In fact, Mesos master can happily run as a container as well.</p>
+          </section>
+
+          <section>
+            <h2>Spring Boot</h2>
+            <p>You're punishing yourself if you're not using it</p>
+            <small>
+            <table>
+              <caption>From "Hmmm, wouldn't it be cool..." to "Done, moving on."</caption>
+              <thead>
+                <tr>
+                  <th>Technology</th>
+                  <th>Minutes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Run H2 database, configure DataSource, Hibernate, etc.</td>
+                  <td>1</td>
+                </tr>
+                <tr>
+                  <td>Exposing REST API with JSON (de-) serialization</td>
+                  <td>5</td>
+                </tr>
+                <tr>
+                  <td>Service registration and discovery with Eureka</td>
+                  <td>20</td>
+                </tr>
+                <tr>
+                  <td>Streaming live events to the browser with WebSockets</td>
+                  <td>40 (including JavaScript)</td>
+                </tr>
+                <tr>
+                  <td>Managing Javascript dependencies with WebJars</td>
+                  <td>5</td>
+                </tr>
+              </tbody>
+            </table>
+            </small>
+          </section>
+
+        </section>
+
+        <section>
+          <h2>Thank you!</h2>
+          <ul>
+            <li>E-mail: <a href="mailto:dmitriy.volk@gmail.com">dmitriy.volk@gmail.com</a></li>
+            <li>Twitter: <a href="http://twitter.com/xbo">@xbo</a></li>
+            <li><a href="https://github.com/dmitriyvolk/mesos-presentation">https://github.com/dmitriyvolk/mesos-presentation</a></li>
+          </ul>
+        </section>
+
+
+      </div>
+
+    </div>
+
+    <script src="bower_components/reveal.js/lib/js/head.min.js"></script>
+    <script src="bower_components/reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'bower_components/classlist/classList.min.js', condition: function() { return !document.body.classList; } },
+          { src: 'bower_components/reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'bower_components/reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'bower_components/reveal.js/plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, 
+            callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'bower_components/reveal.js/plugin/zoom-js/zoom.js', async: true },
+          { src: 'bower_components/reveal.js/plugin/notes/notes.js', async: true },
+          { src: 'bower_components/reveal.js/plugin/math/math.js', async: true },
+          { src: 'js/logomarker.min.js'}
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>
